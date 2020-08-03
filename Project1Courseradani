@@ -1,32 +1,49 @@
 ```
-library(readr)
-library(lubridate)
+hpc <- read_csv("household_power_consumption.csv")
+```
 
-household_power_consumption <- read_csv("household_power_consumption.csv")
-household_power_consumption$Date<-dmy(household_power_consumption$Date)
-fe<-household_power_consumption[household_power_consumption$Date>="2007-02-01",]
-feb<-fe[fe$Date<="2007-02-02",]
-feb = feb[!is.na(feb$Date),]  
+```
+hpc$Date_Time<-paste(hpc$Date,hpc$Time)
+hpc$Date_Time<-strptime(hpc$Date_Time, "%d/%m/%Y %H:%M:%S")
+hpc$Date<-Date<-as.Date(hpc$Date,"%d/%m/%Y")
+```
 
-#ready date 
+```
+#seleccion de fecha deseada
+hpc_feb<-subset(hpc, Date>="2007-02-01" & Date<="2007-02-02")
+```
 
-#plot1
-hist(feb$Global_active_power,col="red", main="Global active Power" , xlab="Global Active Power (kilowatts)",breaks=200)
+##Graficos
 
-#plot2
+```
+#PLOT 1
+png(file="plot1.png")
+hist(hpc_feb$Global_active_power, col="red", xlab="Global Active Power (kilowatts", main = "Global Active Power")
+dev.off()
 
-feb= feb[order(feb$Date),]  #order
-plot(feb$Time,feb$Global_active_power,pch=19,ty="s",xlab=NA, ylab="Global Active Power (kilowatts)", ylim=c(0,8))
+#PLOT 2
+png(file="plot2.png")
+plot(hpc_feb$Date_Time,hpc_feb$Global_active_power,pch=19,ty="l",xlab=NA, ylab="Global Active Power (kilowatts)")
+dev.off()
 
-#plot3
-library(ggplot2)
-ggplot(feb, aes(x=Time,y=Sub_metering_1))+ geom_line()+ geom_line(y=feb$Sub_metering_2, color="red")+ geom_line(y=feb$Sub_metering_3, color="blue")
+#PLOT 3
+png(file = "plot3.png")
+plot(hpc_feb$Date_Time,hpc_feb$Sub_metering_1, type = "l", xlab = NA, ylab = "Energy sub metering")
+lines(hpc_feb$Date_Time,hpc_feb$Sub_metering_2, col = "red")
+lines(hpc_feb$Date_Time,hpc_feb$Sub_metering_3, col = "blue")
+legend("topright",col = c("black", "red", "blue"),legend = c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"), lty =c(1,1,1), cex = 0.8)
+dev.off()
 
-#plot4
+#Plot 4
+png(file="plot4.png")
+par(mfcol=c(2,2),mar=c(4,4,2,1))
+plot(hpc_feb$Date_Time,hpc_feb$Global_active_power,pch=19,ty="l",xlab=NA, ylab="Global Active Power (kilowatts)")
+plot(hpc_feb$Date_Time,hpc_feb$Sub_metering_1, type = "l", xlab = NA, ylab = "Energy sub metering")
+lines(hpc_feb$Date_Time,hpc_feb$Sub_metering_2, col = "red")
+lines(hpc_feb$Date_Time,hpc_feb$Sub_metering_3, col = "blue")
+legend("topright",col = c("black", "red", "blue"),legend = c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"), lty =c(1,1,1), cex = 0.8)
+plot(hpc_feb$Date_Time,hpc_feb$Voltage, xlab="datetime",ylab="Voltage", type="l")
+plot(hpc_feb$Date_Time,hpc_feb$Global_reactive_power, type = "l", xlab =" datetime", ylab = "Global_reactive_power")
+dev.off()
 
-par(mfrow=c(2,2),mar=c(4,4,2,1),oma=c(0,0,2,0))
 
-plot(feb$Time,feb$Global_active_power,pch=19,ty="s",xlab=NA, ylab="Global Active Power (kilowatts)", ylim=c(0,8))
-ggplot(feb, aes(x=Time,y=Sub_metering_1))+ geom_line()+ geom_line(y=feb$Sub_metering_2, color="red")+ geom_line(y=feb$Sub_metering_3, color="blue")
-plot(feb$Time,feb$Voltage,pch=19,ty="s", xlab="datetime", ylab = "Voltage")
-plot(feb$Time,feb$Global_reactive_power,pch=19,ty="s", xlab="datetime")
